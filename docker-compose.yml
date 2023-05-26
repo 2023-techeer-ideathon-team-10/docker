@@ -1,0 +1,68 @@
+version: "3"
+
+services:
+  nginx:
+    container_name: nginx
+    restart: unless-stopped
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    #expose:
+    #  - 80
+    user: root
+    volumes:
+      - build_folder:/var/www/frontend
+    depends_on:
+      - backend
+      - frontend
+
+  backend:
+    restart: unless-stopped
+    container_name: backend
+    build:
+      context: ./backend/.
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend/:/backend/
+      # - static_volume:/backend/static # <-- bind the static volume
+    # stdin_open: true
+    tty: true
+    # networks:
+    #   - backend_network
+    expose:
+      - 8080
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - redis
+    command: gunicorn --bind :8000 backend.wsgi:application
+
+  frontend:
+    container_name: frontend
+    restart: unless-stopped
+    build:
+      context: ./react-repo
+      dockerfile: Dockerfile
+    command: ["yarn", "start"]
+    ports:
+      - 3000:3000
+    volumes:
+      - ./react-repo/:/react-repo/
+      - build_folder:/react-repo/build
+      - ./react-repo/node_modules/:/react-repo/node_modules
+    environment:
+      - CI=true
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_BACKEND_URL=http://localhost:8000
+    tty: true
+
+volumes:
+  build_folder:
+  # postgres_data_dev: null
+  static_volume:
+  prometheus_data: {}
+  grafana_data: {}
