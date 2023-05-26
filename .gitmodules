@@ -1,0 +1,3 @@
+[submodule "backend"]
+	path = backend
+	url = https://github.com/2023-techeer-ideathon-team-10/backend.git
