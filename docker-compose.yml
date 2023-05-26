@@ -9,8 +9,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - 80:80
-    #expose:
-    #  - 80
     user: root
     volumes:
       - build_folder:/var/www/frontend
@@ -35,25 +33,23 @@ services:
     #   - backend_network
     expose:
       - 8080
-    env_file:
-      - ./backend/.env
-    depends_on:
-      - redis
-    command: gunicorn --bind :8000 backend.wsgi:application
+    # env_file:
+    #   - ./backend/.env
+    command: gunicorn --bind :8080 backend.wsgi:application
 
   frontend:
     container_name: frontend
     restart: unless-stopped
     build:
-      context: ./react-repo
+      context: ./frontend
       dockerfile: Dockerfile
     command: ["yarn", "start"]
     ports:
       - 3000:3000
     volumes:
-      - ./react-repo/:/react-repo/
-      - build_folder:/react-repo/build
-      - ./react-repo/node_modules/:/react-repo/node_modules
+      - ./frontend/:/frontend/
+      - build_folder:/frontend/build
+      - ./frontend/node_modules/:/frontend/node_modules
     environment:
       - CI=true
       - CHOKIDAR_USEPOLLING=true
@@ -62,7 +58,6 @@ services:
 
 volumes:
   build_folder:
-  # postgres_data_dev: null
   static_volume:
   prometheus_data: {}
   grafana_data: {}
